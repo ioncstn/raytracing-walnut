@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Drawing.Printing;
 using System.IO;
 using System.Text.RegularExpressions;
 
@@ -102,6 +103,7 @@ namespace rt
             double finalAlpha = 0;
             var finalColor = new Color(0, 0, 0, 0);
             bool intersected = false;
+            var prevColor = new Color(0, 0, 0, 0);
 
             for (int i = 0; i < 100; i ++)
             {
@@ -114,23 +116,23 @@ namespace rt
                         result.Position = currentPosition;
                         result.T = currentT;
                     }
-/*                    color *= 10;
-                    color.Alpha = 10;
-                    result.Position = currentPosition;
-                    result.Color = color;
-                    result.Valid = true;
-                    result.Visible = true;
-                    result.Material = Material.FromColor(color);
-                    result.Geometry = this;
-                    result.Normal = GetNormal(currentPosition);
-                    return result;*/
+                    /*                    color *= 10;
+                                        color.Alpha = 10;
+                                        result.Position = currentPosition;
+                                        result.Color = color;
+                                        result.Valid = true;
+                                        result.Visible = true;
+                                        result.Material = Material.FromColor(color);
+                                        result.Geometry = this;
+                                        result.Normal = GetNormal(currentPosition);
+                                        return result;*/
                     finalAlpha += color.Alpha;
                     //finalColor += color * 0.5;
-                    finalColor.Red = Math.Max(finalColor.Red, color.Red);
-                    finalColor.Green = Math.Max(finalColor.Green, color.Green);
-                    finalColor.Blue = Math.Max(finalColor.Blue, color.Blue);
+                    finalColor.Red = color.Alpha * color.Red + (1 - color.Alpha) * finalColor.Red;
+                    finalColor.Green = color.Alpha * color.Green + (1 - color.Alpha) * finalColor.Green;
+                    finalColor.Blue = color.Alpha * color.Blue + (1 - color.Alpha) * finalColor.Blue;
                 }
-                if (finalAlpha >= 1)
+                if (finalColor.Red + finalColor.Green + finalColor.Blue > 30)
                 {
                     break;
                 }
@@ -144,8 +146,10 @@ namespace rt
                 //return TryAgain(intersections[0], intersections[1]);
             }
 
+            finalColor.Alpha = 1;
             result.Color = finalColor;
-            result.Material = Material.FromColor(finalColor);
+/*            result.Material = Material.FromColor(finalColor);*/
+            result.Material = new Material(result.Color * 0.5, result.Color * 0.6, result.Color * 0.7, 100);
             result.Visible = true;
             result.Valid = true;
             result.Geometry = this;
